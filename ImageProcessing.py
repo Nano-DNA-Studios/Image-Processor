@@ -45,7 +45,7 @@ def ResizeImage (input_image_path: [str], output_image_path: [str]):
 def RecursiveImageProcessing (input_dir: str , output_dir : str, processImage):
 
     #Get the List of Directories and the files
-    for subdirs, dirs, images in os.walk(input_dir):
+    for subdirs, dirs, files in os.walk(input_dir):
         #Copy Folder Structure
         for dir in dirs:
             #Gets the Output folder
@@ -53,10 +53,6 @@ def RecursiveImageProcessing (input_dir: str , output_dir : str, processImage):
             structure_input = os.path.join(input_dir, dir)
 
             if os.path.isdir(structure_input):
-                # print(f"Dir:{dir}")
-                # print(f"Input: {structure_input}")
-                # print(f"Output: {structure_output}")
-
                 #Make the new Directory
                 if not os.path.isdir(structure_output):
                     os.makedirs(structure_output)
@@ -67,18 +63,16 @@ def RecursiveImageProcessing (input_dir: str , output_dir : str, processImage):
                 print(f"Completed {dir}")
 
         #Process Images
-        for image in images:
+        for file in files:
+            #Save paths
+            image_path = os.path.join(input_dir, file)
+            image_output_path = os.path.join(output_dir, file)
 
-            image_path = os.path.join(input_dir, image)
-            image_output_path = os.path.join(output_dir, image)
-            
+            #Check if it's a real file 
             if os.path.isfile(image_path):
-                if image.lower().endswith(('.png', '.jpeg', '.jpg')):
+                #Check if the file is an 'Image'
+                if file.lower().endswith(('.png', '.jpeg', '.jpg')):
                     processImage(image_path, image_output_path)
-
-        
-
-
 
 #Sets up the folder
 root = tk.Tk()
@@ -89,11 +83,6 @@ Folder_Path = GetFolderPath()
 Output_Path = GetFolderPath()
 
 RecursiveImageProcessing(Folder_Path, Output_Path, ResizeImage)
-
-# Images = GetImages(Folder_Path)
-
-# for image in Images:
-#     ResizeImage(Folder_Path + "/" + image, [28, 28], Output_Path + "/Test/" + image)
 
 print(Folder_Path + "  -->  " + Output_Path)
 
