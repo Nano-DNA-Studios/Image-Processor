@@ -2,7 +2,8 @@ import numpy as np
 import os
 import tkinter as tk
 from tkinter import filedialog
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageFilter, ImageDraw, ImageEnhance, ImageOps
+import random
 
 def GetFolderPath ():
     folder_path = filedialog.askdirectory()
@@ -23,6 +24,60 @@ def GetImages  (folder_path: [str]):
 
     return image_files
 
+def ProcessShapes (input_image_path: [str], output_image_path: [str]):
+    
+    # Open the image
+    img = Image.open(input_image_path)
+
+    # Resize the image
+    resized_img = img.resize([28, 28])
+
+    # Convert the image to grayscale
+    gray_image = ImageOps.grayscale(resized_img)
+
+    inverse = ImageOps.invert(gray_image)
+
+    # Apply edge detection
+    edges = inverse.filter(ImageFilter.FIND_EDGES)
+
+    # Save the resized image as PNG
+    edges.save(output_image_path, 'PNG')
+
+    #Make 10 edited copies 
+    for i in range(20):
+        #Make 10 copies
+        edge_copy = edges.copy()
+
+        #Get random values
+        angle = random.uniform(-40, 40)
+        scale = random.uniform(0.5, 1.4)
+        offsetX = random.randint(-4, 4)
+        offsetY = random.randint(-4, 4)
+
+        #Rotate the Image
+        rotated_image = edge_copy.rotate(angle, expand=False)
+
+        #Scale Image
+        scale_image = ImageOps.scale(rotated_image, scale, resample=Image.Resampling.BILINEAR)
+
+        #Generate a new Image for Offset
+        offset_image = Image.new('L', edge_copy.size)
+
+        #Offset the image
+        offset_image.paste(scale_image, (offsetX, offsetY))
+
+        #Get Noise image
+        noise = Image.effect_noise(edge_copy.size, 60)
+
+        #Mix original and the noise
+        noise_image = Image.blend(offset_image, noise, 0.1) #Change this Alpha value
+
+        #Get new Save path
+        edited_path = output_image_path.replace(".", f"_{i}.")
+
+        # Save the Edited image
+        noise_image.save(edited_path, 'PNG')
+
 def ResizeImage (input_image_path: [str], output_image_path: [str]):
 
     # Open the image
@@ -41,6 +96,7 @@ def ResizeImage (input_image_path: [str], output_image_path: [str]):
 
     # Save the resized image as PNG
     edges.save(output_image_path, 'PNG')
+
 
 def RecursiveImageProcessing (input_dir: str , output_dir : str, processImage):
 
@@ -82,7 +138,7 @@ Folder_Path = GetFolderPath()
 
 Output_Path = GetFolderPath()
 
-RecursiveImageProcessing(Folder_Path, Output_Path, ResizeImage)
+RecursiveImageProcessing(Folder_Path, Output_Path, ProcessShapes)
 
 print(Folder_Path + "  -->  " + Output_Path)
 
